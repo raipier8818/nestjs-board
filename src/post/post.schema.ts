@@ -14,7 +14,7 @@ export class Post {
   @Prop({ type: String, required: true })
   author: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, default: new Date().toISOString() })
   createdAt: string;
 
   @Prop({ type: String })
