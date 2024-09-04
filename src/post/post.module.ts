@@ -3,6 +3,7 @@ import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostSchema } from './post.schema';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { Post, PostSchema } from './post.schema';
         schema: PostSchema,
       }
     ]),
+    UserModule
   ],
   controllers: [PostController],
   providers: [PostService],

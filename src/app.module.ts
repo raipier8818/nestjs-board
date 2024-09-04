@@ -7,6 +7,8 @@ import { ConfigModule, ConfigService, ConfigType } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import appConfig from './config/app.config';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -32,7 +34,9 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
         }
       },
       inject: [databaseConfig.KEY],
-    })
+    }),
+    AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
