@@ -21,7 +21,6 @@ export class PostService {
     }
     
     result = await this.postModel.findById(_id).exec();
-    console.log(result);
     if (!result) {
       throw new NotFoundException(`Post with id ${id} not found`);
     }

@@ -9,24 +9,22 @@ export class PostController {
   ) {}
 
   @Get()
-  findPosts(@Query() postQueryDto: PostQueryDto): Promise<PostResponseDto[]> {
-    console.log(postQueryDto);
-    
+  async findPosts(@Query() postQueryDto: PostQueryDto): Promise<PostResponseDto[]> {
     return this.postService.findPosts(postQueryDto);
   }
 
   @Get('/:id')
-  findPostById(@Param('id') id: string): Promise<PostResponseDto> {    
+  async findPostById(@Param('id') id: string): Promise<PostResponseDto> {    
     return this.postService.findPostById(id);
   }
 
   @Post()
-  createPost(@Body() createPostDto: CreatePostDto): Promise<void> {
+  async createPost(@Body() createPostDto: CreatePostDto): Promise<void> {
     return this.postService.createPost(createPostDto);
   }
 
   @Put('/:id')
-  updatePost(@Body() UpdatePostRequestDto: UpdatePostRequestDto, @Param() id: string): Promise<void> {
+  async updatePost(@Body() UpdatePostRequestDto: UpdatePostRequestDto, @Param() id: string): Promise<void> {
     const updatePostDto: UpdatePostDto = {
       id: id,
       ...UpdatePostRequestDto,
@@ -35,7 +33,7 @@ export class PostController {
   }
 
   @Delete('/:id')
-  deletePost(@Param('id') id: string): Promise<void> {
+  async deletePost(@Param('id') id: string): Promise<void> {
     return this.postService.deletePost(id);
   }
 }
