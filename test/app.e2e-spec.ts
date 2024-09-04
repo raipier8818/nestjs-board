@@ -1,12 +1,197 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { CreatePostDto, PostResponseDto } from '../src/post/post.dto';
 
-describe('AppController (e2e)', () => {
+const createRandomString = (length: number): string => {
+  let result = '';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+};
+
+const createRandomPostDto = (): CreatePostDto => {
+  return {
+    title: createRandomString(10),
+    content: createRandomString(100),
+    author: createRandomString(10),
+  };
+};
+
+const times = 100;
+let app: INestApplication;
+
+
+describe.each([Array.from({ length: times }, createRandomPostDto)])(
+  'PostController e2e with single data',
+  (createPostDto: CreatePostDto) => {
+    let post: PostResponseDto;
+
+    beforeAll(async () => {
+      const moduleFixture: TestingModule = await Test.createTestingModule({
+        imports: [AppModule],
+      }).compile();
+
+      app = moduleFixture.createNestApplication();
+      await app.init();
+    });
+
+    afterAll(async () => {
+      await app.close();
+    });
+
+    test('/post (GET) - find all posts', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/post')
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toEqual(0);
+    });
+
+    test('/post (POST) - create post', async () => {
+      await request(app.getHttpServer())
+        .post('/post')
+        .send(createPostDto)
+        .expect(201);
+    });
+
+    test('/post (GET) - find all posts after create', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/post')
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toBeGreaterThan(0);
+
+      post = response.body[0];
+      expect(post).toEqual(expect.objectContaining(createPostDto));
+    });
+
+    test('/post/:id (GET) - find post by id after create', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/post/${post.id}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Object);
+      expect(response.body).toEqual(post);
+    });
+
+    test('/post?title= (GET) - find post by title after create', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/post?title=${post.title}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toEqual(1);
+      expect(response.body[0]).toEqual(post);
+    });
+
+    test('/post?author= (GET) - find post by author after create', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/post?author=${post.author}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toEqual(1);
+      expect(response.body[0]).toEqual(post);
+    });
+
+    test('/post/:id (PUT) - update post', async () => {
+      const updatedPost = createRandomPostDto();
+      delete updatedPost.author;
+
+      createPostDto.title = updatedPost.title;
+      createPostDto.content = updatedPost.content;
+
+      await request(app.getHttpServer())
+        .put(`/post/${post.id}`)
+        .send(updatedPost)
+        .expect(200);
+    });
+
+    test('/post (GET) - find all posts after update', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/post')
+        .expect(200);
+
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toBeGreaterThan(0);
+
+      post = response.body[0];
+      expect(post).toEqual(expect.objectContaining(createPostDto));
+    });
+
+    test('/post/:id (GET) - find post by id after update', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/post/${post.id}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Object);
+      expect(response.body).toEqual(post);
+    });
+
+    test('/post?title= (GET) - find post by title after update', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/post?title=${post.title}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toEqual(1);
+      expect(response.body[0]).toEqual(post);
+    });
+
+    test('/post?author= (GET) - find post by author update', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/post?author=${post.author}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toEqual(1);
+      expect(response.body[0]).toEqual(post);
+    });
+
+    test('/post/:id (DELETE) - delete post', async () => {
+      await request(app.getHttpServer()).delete(`/post/${post.id}`).expect(200);
+    });
+
+    test('/post (GET) - find all posts after delete', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/post')
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toEqual(0);
+    });
+
+    test('/post/:id (GET) - find post by id after delete', async () => {
+      await request(app.getHttpServer()).get(`/post/${post.id}`).expect(404);
+    });
+
+    test('/post?title= (GET) - find post by title after delete', async () => {
+      await request(app.getHttpServer())
+        .get(`/post?title=${post.title}`)
+        .expect(200)
+        .expect((response) => {
+          expect(response.body).toBeInstanceOf(Array);
+          expect(response.body.length).toEqual(0);
+        });
+    });
+
+    test('/post?author= (GET) - find post by author after delete', async () => {
+      await request(app.getHttpServer())
+        .get(`/post?author=${post.author}`)
+        .expect(200)
+        .expect((response) => {
+          expect(response.body).toBeInstanceOf(Array);
+          expect(response.body.length).toEqual(0);
+        });
+    });
+  },
+);
+
+describe('PostController e2e with multiple data', () => {
   let app: INestApplication;
+  let createPostDtos: CreatePostDto[];
+  let posts: PostResponseDto[];
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -15,10 +200,181 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  afterAll(async () => {
+    await app.close();
+  });
+
+  test('/post (GET) - find all posts', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/post')
+      .expect(200);
+    expect(response.body).toBeInstanceOf(Array);
+    expect(response.body.length).toEqual(0);
+  });
+
+  test('/post (POST) - create multiple posts', async () => {
+    createPostDtos = Array.from({ length: times }, createRandomPostDto);
+    for (const createPostDto of createPostDtos) {
+      await request(app.getHttpServer())
+        .post('/post')
+        .send(createPostDto)
+        .expect(201);
+    }
+  });
+
+  test('/post (GET) - find all posts after create', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/post')
+      .expect(200);
+    expect(response.body).toBeInstanceOf(Array);
+    expect(response.body.length).toEqual(times);
+
+    posts = response.body;
+
+    for (let i = 0; i < times; i++) {
+      expect(posts[i]).toEqual(expect.objectContaining(createPostDtos[i]));
+    }
+  });
+
+  test('/post/:id (GET) - find post by id after create', async () => {
+    for (let i = 0; i < times; i++) {
+      const response = await request(app.getHttpServer())
+        .get(`/post/${posts[i].id}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Object);
+      expect(response.body).toEqual(posts[i]);
+    }
+  });
+
+  test('/post?title= (GET) - find post by title after create', async () => {
+    for (let i = 0; i < times; i++) {
+      const response = await request(app.getHttpServer())
+        .get(`/post?title=${posts[i].title}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toBeGreaterThanOrEqual(1);
+      expect(response.body).toContainEqual(posts[i]);
+    }
+  });
+
+  test('/post?author= (GET) - find post by author after create', async () => {
+    for (let i = 0; i < times; i++) {
+      const response = await request(app.getHttpServer())
+        .get(`/post?author=${posts[i].author}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toBeGreaterThanOrEqual(1);
+      expect(response.body).toContainEqual(posts[i]);
+    }
+  });
+
+  test('/post/:id (PUT) - update post', async () => {
+    for (let i = 0; i < times; i++) {
+      const updatedPost = createRandomPostDto();
+      delete updatedPost.author;
+
+      createPostDtos[i].title = updatedPost.title;
+      createPostDtos[i].content = updatedPost.content;
+
+      await request(app.getHttpServer())
+        .put(`/post/${posts[i].id}`)
+        .send(updatedPost)
+        .expect(200);
+    }
+  });
+
+  test('/post (GET) - find all posts after update', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/post')
+      .expect(200);
+
+    expect(response.body).toBeInstanceOf(Array);
+    expect(response.body.length).toEqual(times);
+
+    posts = response.body;
+
+    for (let i = 0; i < times; i++) {
+      expect(posts[i]).toEqual(expect.objectContaining(createPostDtos[i]));
+    }
+  });
+
+  test('/post/:id (GET) - find post by id after update', async () => {
+    for (let i = 0; i < times; i++) {
+      const response = await request(app.getHttpServer())
+        .get(`/post/${posts[i].id}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Object);
+      expect(response.body).toEqual(posts[i]);
+    }
+  });
+
+  test('/post?title= (GET) - find post by title after update', async () => {
+    for (let i = 0; i < times; i++) {
+      const response = await request(app.getHttpServer())
+        .get(`/post?title=${posts[i].title}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toBeGreaterThanOrEqual(1);
+      expect(response.body).toContainEqual(posts[i]);
+    }
+  });
+
+  test('/post?author= (GET) - find post by author update', async () => {
+    for (let i = 0; i < times; i++) {
+      const response = await request(app.getHttpServer())
+        .get(`/post?author=${posts[i].author}`)
+        .expect(200);
+      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.length).toBeGreaterThanOrEqual(1);
+      expect(response.body).toContainEqual(posts[i]);
+    }
+  });
+
+  test('/post/:id (DELETE) - delete post', async () => {
+    for (let i = 0; i < times; i++) {
+      await request(app.getHttpServer())
+        .delete(`/post/${posts[i].id}`)
+        .expect(200);
+    }
+  });
+
+  test('/post (GET) - find all posts after delete', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/post')
+      .expect(200);
+    expect(response.body).toBeInstanceOf(Array);
+    expect(response.body.length).toEqual(0);
+  });
+
+  test('/post/:id (GET) - find post by id after delete', async () => {
+    for (let i = 0; i < times; i++) {
+      await request(app.getHttpServer())
+        .get(`/post/${posts[i].id}`)
+        .expect(404);
+    }
+  });
+
+  test('/post?title= (GET) - find post by title after delete', async () => {
+    for (let i = 0; i < times; i++) {
+      await request(app.getHttpServer())
+        .get(`/post?title=${posts[i].title}`)
+        .expect(200)
+        .expect((response) => {
+          expect(response.body).toBeInstanceOf(Array);
+          expect(response.body.length).toEqual(0);
+        });
+    }
+  });
+
+  test('/post?author= (GET) - find post by author after delete', async () => {
+    for (let i = 0; i < times; i++) {
+      await request(app.getHttpServer())
+        .get(`/post?author=${posts[i].author}`)
+        .expect(200)
+        .expect((response) => {
+          expect(response.body).toBeInstanceOf(Array);
+          expect(response.body.length).toEqual(0);
+        });
+    }
   });
 });

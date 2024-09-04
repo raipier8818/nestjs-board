@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreatePostDto, PostResponseDto, UpdatePostDto } from './post.dto';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { CreatePostDto, PostResponseDto, UpdatePostDto, PostQueryDto } from './post.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostDocument } from './post.schema';
 import { Model, Types } from 'mongoose';
@@ -11,7 +11,16 @@ export class PostService {
   ) {}
 
   async findPostById(id: string): Promise<PostResponseDto> {
-    const result = await this.postModel.findById(new Types.ObjectId(id)).exec();
+    let _id: Types.ObjectId;
+    let result: PostDocument;
+    
+    try{
+      _id = new Types.ObjectId(id);
+    }catch (err){
+      throw new BadRequestException(`Invalid id ${id}`);
+    }
+    
+    result = await this.postModel.findById(_id).exec();
     if (!result) {
       throw new NotFoundException(`Post with id ${id} not found`);
     }
@@ -19,18 +28,8 @@ export class PostService {
     return new PostResponseDto(result);
   }
 
-  async findAllPosts(): Promise<PostResponseDto[]> {
-    const result = await this.postModel.find().exec();
-    return result.map((post) => new PostResponseDto(post));
-  }
-
-  async findPostsByAuthor(author: string): Promise<PostResponseDto[]> {
-    const result = await this.postModel.find({ author }).exec();
-    return result.map((post) => new PostResponseDto(post));
-  }
-
-  async findPostsByTitle(title: string): Promise<PostResponseDto[]> {
-    const result = await this.postModel.find({ title }).exec();
+  async findPosts(postQueryDto: PostQueryDto): Promise<PostResponseDto[]> {
+    const result = await this.postModel.find({...postQueryDto}).exec();
     return result.map((post) => new PostResponseDto(post));
   }
 
@@ -40,8 +39,12 @@ export class PostService {
   }
 
   async updatePost(updatePostDto: UpdatePostDto): Promise<void> {
-    const { _id, ...rest } = updatePostDto;
-    await this.postModel.updateOne({ _id: new Types.ObjectId(_id) }, rest).exec();
+    const { id, ...rest } = updatePostDto;
+    const update = {
+      ...rest,
+      updatedAt: new Date().toISOString(),
+    }
+    await this.postModel.updateOne({ _id: new Types.ObjectId(id) }, update).exec();
   }
 
   async deletePost(id: string): Promise<void> {

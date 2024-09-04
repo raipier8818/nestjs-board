@@ -1,33 +1,57 @@
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { PostDocument } from "./post.schema";
 
 export class CreatePostDto {
+  @IsString()
+  @IsNotEmpty()
   title: string;
+
+  @IsString()
+  @IsNotEmpty()
   content: string;
+
+  @IsString()
+  @IsNotEmpty()
   author: string;
-  createdAt: string;  
-  updatedAt: string;
 }
 
 export class UpdatePostRequestDto {
+  @IsString()
+  @IsNotEmpty()
   title: string;
+  @IsString()
+  @IsNotEmpty()
   content: string;
-  updatedAt: string;
 }
 
 export class UpdatePostDto extends UpdatePostRequestDto {
-  _id: string;
+  id: string;
 }
 
 export class PostResponseDto extends CreatePostDto {
-  _id: string;
+  id: string;
+  createdAt: string;
+  updatedAt: string;
 
   constructor(post: PostDocument) {
     super();
-    this._id = post._id.toString();
+    this.id = post._id.toString();
     this.title = post.title;
     this.content = post.content;
     this.author = post.author;
     this.createdAt = post.createdAt;
     this.updatedAt = post.updatedAt;
   }
+}
+
+export class PostQueryDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  author?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  title?: string;
 }

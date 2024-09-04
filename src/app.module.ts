@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService, ConfigType } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import appConfig from './config/app.config';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 @Module({
   imports: [
@@ -17,8 +18,14 @@ import appConfig from './config/app.config';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (config: ConfigType<typeof databaseConfig>) => {
-        console.log(config.mongoose);
+      useFactory: async (config: ConfigType<typeof databaseConfig>) => {
+        if(process.env.NODE_ENV === 'test') {
+          const mongod = await MongoMemoryServer.create();
+          return {
+            uri: mongod.getUri(),
+          }
+        }
+
         return {
           uri: config.mongoose.uri,
           dbName: config.mongoose.dbName,
