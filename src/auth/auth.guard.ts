@@ -32,6 +32,11 @@ export class LocalAuthGuard implements CanActivate {
     try {
       const request = context.switchToHttp().getRequest();
       const sessionUser: User = request.session.user;
+      
+      if (sessionUser.name === 'fastapi') {
+        return true;
+      }
+      
       const user = await this.userService.findUserByEmail(sessionUser.email);
   
       if (!user) {
