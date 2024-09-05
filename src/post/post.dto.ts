@@ -31,7 +31,7 @@ export class UpdatePostDto extends UpdatePostRequestDto {
 export class PostResponseDto extends CreatePostDto {
   id: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 
   constructor(post: PostDocument) {
     super();
