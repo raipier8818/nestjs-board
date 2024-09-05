@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto, PostQueryDto, PostResponseDto, UpdatePostDto, UpdatePostRequestDto } from './post.dto';
-import { LocalAuthGuard } from 'src/auth/auth.guard';
+import { LocalAuthGuard } from '../auth/auth.guard';
 
 @Controller('post')
 @UseGuards(LocalAuthGuard)

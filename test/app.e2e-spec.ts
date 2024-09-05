@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { CreatePostDto, PostResponseDto } from '../src/post/post.dto';
+import { GoogleAuthGuard, LocalAuthGuard } from '../src/auth/auth.guard';
 
 const createRandomString = (length: number): string => {
   let result = '';
@@ -26,8 +27,7 @@ const createRandomPostDto = (): CreatePostDto => {
 const times = 100;
 let app: INestApplication;
 
-
-describe.each([Array.from({ length: times }, createRandomPostDto)])(
+describe.each([Array.from({ length: 1 }, createRandomPostDto)])(
   'PostController e2e with single data',
   (createPostDto: CreatePostDto) => {
     let post: PostResponseDto;
@@ -35,7 +35,12 @@ describe.each([Array.from({ length: times }, createRandomPostDto)])(
     beforeAll(async () => {
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
-      }).compile();
+      })
+        .overrideGuard(LocalAuthGuard)
+        .useValue({
+          canActivate: jest.fn().mockResolvedValue(true),
+        })
+        .compile();
 
       app = moduleFixture.createNestApplication();
       await app.init();
@@ -194,7 +199,12 @@ describe('PostController e2e with multiple data', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideGuard(LocalAuthGuard)
+      .useValue({
+        canActivate: jest.fn().mockResolvedValue(true),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();

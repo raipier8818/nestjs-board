@@ -3,11 +3,11 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ConfigModule } from '@nestjs/config';
 import { GoogleStrategy } from './auth.strategy';
-import authConfig from 'src/config/auth.config';
+import authConfig from '../config/auth.config';
 import { PassportModule } from '@nestjs/passport';
-import { User, UserSchema } from 'src/user/user.schema';
+import { User, UserSchema } from '../user/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserModule } from 'src/user/user.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [

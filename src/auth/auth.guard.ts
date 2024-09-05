@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { User } from 'src/user/user.schema';
-import { UserService } from 'src/user/user.service';
+import { User } from '../user/user.schema';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class GoogleAuthGuard extends AuthGuard('google') {
@@ -29,14 +29,17 @@ export class LocalAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const sessionUser: User = request.session.user;
-    const user = await this.userService.findUserByEmail(sessionUser.email);
-
-    if (!user) {
+    try {
+      const request = context.switchToHttp().getRequest();
+      const sessionUser: User = request.session.user;
+      const user = await this.userService.findUserByEmail(sessionUser.email);
+  
+      if (!user) {
+        return false;
+      }
+      return true;
+    } catch (error) {
       return false;
     }
-
-    return true;
   }
 }
