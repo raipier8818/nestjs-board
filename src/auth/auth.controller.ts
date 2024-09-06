@@ -12,10 +12,11 @@ export class AuthController {
   @Get('/google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
-    req.session['user'] = req.user as User;
-    req.session.save(() => {
-      res.redirect('http://localhost:3000/post');
-    });
+    // req.session['user'] = req.user as User;
+    // req.session.save(() => {
+    //   res.redirect('http://localhost:3000/post');
+    // });
+    res.redirect('http://localhost:3000/post');
   }
 
   @Get('/logout')
