@@ -12,9 +12,9 @@ export class GoogleAuthGuard extends AuthGuard('google') {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const can = await super.canActivate(context);
+    const canActivateResult = await super.canActivate(context);
     
-    if (can) {
+    if (canActivateResult) {
       const request = context.switchToHttp().getRequest();
       await super.logIn(request);
     }
