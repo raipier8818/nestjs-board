@@ -7,6 +7,7 @@ import * as passport from 'passport';
 import RedisStore from 'connect-redis';
 import { createClient, RedisClientType } from 'redis';
 import * as session from 'express-session';
+import databaseConfig from './config/database.config';
 
 // const redisClient = createClient({
 // host: 'redis-16994.c340.ap-northeast-2-1.ec2.redns.redis-cloud.com',
@@ -17,12 +18,15 @@ import * as session from 'express-session';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
+  const redisConfig = app.get<ConfigType<typeof databaseConfig>>(
+    databaseConfig.KEY,
+  ).redis;
 
   const redisClient: RedisClientType = createClient({
-    password: 'LLwfZORaBN5dvspbjMZ3c9rEwqsLckaq',
+    password: redisConfig.password,
     socket: {
-      host: 'redis-16994.c340.ap-northeast-2-1.ec2.redns.redis-cloud.com',
-      port: 16994,
+      host: redisConfig.host,
+      port: redisConfig.port,
     },
   });
 
