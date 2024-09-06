@@ -28,8 +28,10 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Get()
+  @UseGuards(LocalAuthGuard)
   async findPosts(
     @Query() postQueryDto: PostQueryDto,
+    @Req() req: Request,
   ): Promise<PostResponseDto[]> {
     return this.postService.findPosts(postQueryDto);
   }
@@ -45,6 +47,8 @@ export class PostController {
     @Body() createPostRequestDto: CreatePostRequestDto,
     @Req() req: Request,
   ): Promise<PostResponseDto> {
+    console.log(req.user);
+
     const user = req.session['user'] as User;
     const createPostDto: CreatePostDto = {
       ...createPostRequestDto,

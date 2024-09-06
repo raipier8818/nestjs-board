@@ -4,9 +4,7 @@ import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   async validateAndSaveUser(user: User): Promise<User> {
     const { name, email } = user;

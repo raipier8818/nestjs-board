@@ -1,9 +1,7 @@
-import { NestMiddleware } from "@nestjs/common";
-import { NextFunction, Request, Response } from "express";
+import { NestMiddleware } from '@nestjs/common';
+import { NextFunction, Request, Response } from 'express';
 
-const whitelist = [
-  'http://localhost:8000',
-];
+const whitelist = ['http://localhost:8000'];
 
 export class IpFilterMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
@@ -14,7 +12,7 @@ export class IpFilterMiddleware implements NestMiddleware {
 
     if (whitelist.includes(req.headers.origin)) {
       req.session['user'] = {
-        name: 'no-auth'
+        name: 'no-auth',
       };
 
       return req.session.save(() => {

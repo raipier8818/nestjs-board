@@ -1,3 +1,4 @@
+import { CreatePostRequestDto } from './../src/post/post.dto';
 import { ExecutionContext, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
@@ -27,13 +28,10 @@ const createRandomPostDto = (): CreatePostDto => {
   };
 };
 
-const times = 100;
-let app: INestApplication;
-
-describe.only.each([Array.from({ length: 1 }, createRandomPostDto)])(
-  'PostController e2e with single data',
+describe.only.each([Array.from({ length: 100 }, createRandomPostDto)])(
+  'PostController e2e with single data (without google oauth)',
   (createPostDto: CreatePostDto) => {
-    
+    let app: INestApplication;
     let post: PostResponseDto;
 
     beforeAll(async () => {
@@ -46,10 +44,10 @@ describe.only.each([Array.from({ length: 1 }, createRandomPostDto)])(
             const request = context.switchToHttp().getRequest();
             request.session.user = {
               name: createPostDto.author,
-            }
+            };
 
             return true;
-          }
+          },
         })
         .compile();
 
@@ -82,10 +80,16 @@ describe.only.each([Array.from({ length: 1 }, createRandomPostDto)])(
     });
 
     test('/post (POST) - create post', async () => {
-      await request(app.getHttpServer())
+      const createPostRequestDto: CreatePostRequestDto = {
+        title: createPostDto.title,
+        content: createPostDto.content,
+      };
+
+      const response = await request(app.getHttpServer())
         .post('/post')
-        .send(createPostDto)
-        .expect(201);
+        .send(createPostRequestDto);
+
+      expect(response.body).toEqual(expect.objectContaining(createPostDto));
     });
 
     test('/post (GET) - find all posts after create', async () => {

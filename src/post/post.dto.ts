@@ -1,5 +1,11 @@
-import { IsEmpty, IsNotEmpty, IsNotIn, IsOptional, IsString } from "class-validator";
-import { PostDocument } from "./post.schema";
+import {
+  IsEmpty,
+  IsNotEmpty,
+  IsNotIn,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { PostDocument } from './post.schema';
 
 export class CreatePostRequestDto {
   @IsString()

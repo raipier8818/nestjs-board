@@ -8,7 +8,7 @@ import * as passport from 'passport';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
 
   app.useGlobalPipes(new ValidationPipe());
@@ -19,12 +19,11 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         secure: false,
-        maxAge: config.session.maxAge
+        maxAge: config.session.maxAge,
+      },
+    }),
+  );
 
-      }
-    })
-  )
-  
   app.use(passport.initialize());
   app.use(passport.session());
 

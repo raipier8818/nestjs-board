@@ -14,26 +14,26 @@ import { IpFilterMiddleware } from './middleware/ipFilter.middleware';
 
 @Module({
   imports: [
-    PostModule, 
+    PostModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [appConfig, databaseConfig]
+      load: [appConfig, databaseConfig],
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigType<typeof databaseConfig>) => {
-        if(process.env.NODE_ENV === 'test') {
+        if (process.env.NODE_ENV === 'test') {
           const mongod = await MongoMemoryServer.create();
           return {
             uri: mongod.getUri(),
-          }
+          };
         }
 
         return {
           uri: config.mongoose.uri,
           dbName: config.mongoose.dbName,
-        }
+        };
       },
       inject: [databaseConfig.KEY],
     }),
@@ -55,6 +55,6 @@ export class AppModule {
       .forRoutes({
         path: '*',
         method: RequestMethod.ALL,
-      })
+      });
   }
 }

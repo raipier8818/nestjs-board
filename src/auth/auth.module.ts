@@ -20,10 +20,10 @@ import { AuthSerializer } from './auth.serializer';
     MongooseModule.forFeature([
       {
         name: User.name,
-        schema: UserSchema
-      }
+        schema: UserSchema,
+      },
     ]),
-    UserModule
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, GoogleStrategy, AuthSerializer],
