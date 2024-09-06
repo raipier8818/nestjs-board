@@ -7,4 +7,3 @@ export default registerAs('auth', () => ({
     callbackUrl: process.env.GOOGLE_OAUTH_CALLBACK_URL,
   },
 }));
-

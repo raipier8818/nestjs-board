@@ -11,9 +11,9 @@ import { UserModule } from '../user/user.module';
       {
         name: Post.name,
         schema: PostSchema,
-      }
+      },
     ]),
-    UserModule
+    UserModule,
   ],
   controllers: [PostController],
   providers: [PostService],

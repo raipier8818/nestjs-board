@@ -8,23 +8,24 @@ import { PassportModule } from '@nestjs/passport';
 import { User, UserSchema } from '../user/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from '../user/user.module';
+import { AuthSerializer } from './auth.serializer';
 
 @Module({
   imports: [
     PassportModule.register({
       defaultStrategy: 'google',
-      session: false,
+      session: true,
     }),
     ConfigModule.forFeature(authConfig),
     MongooseModule.forFeature([
       {
         name: User.name,
-        schema: UserSchema
-      }
+        schema: UserSchema,
+      },
     ]),
-    UserModule
+    UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy]
+  providers: [AuthService, GoogleStrategy, AuthSerializer],
 })
 export class AuthModule {}
