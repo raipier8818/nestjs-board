@@ -4,6 +4,7 @@ import { ConfigService, ConfigType } from '@nestjs/config';
 import appConfig from './config/app.config';
 import { ValidationPipe } from '@nestjs/common';
 import * as session from 'express-session';
+import * as passport from 'passport';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,6 +24,10 @@ async function bootstrap() {
       }
     })
   )
+  
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   await app.listen(config.port);
 }
 bootstrap();
