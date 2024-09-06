@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { CreatePostDto, PostResponseDto, UpdatePostDto, PostQueryDto } from './post.dto';
+import { CreatePostDto, PostResponseDto, UpdatePostDto, PostQueryDto, DeletePostDto } from './post.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostDocument } from './post.schema';
 import { Model, Types } from 'mongoose';
@@ -33,21 +33,33 @@ export class PostService {
     return result.map((post) => new PostResponseDto(post));
   }
 
-  async createPost(createPostDto: CreatePostDto): Promise<void> {
+  async createPost(createPostDto: CreatePostDto): Promise<PostResponseDto> {
     const post = new this.postModel(createPostDto);
-    await post.save();
+    return await post.save() as PostResponseDto;
   }
 
   async updatePost(updatePostDto: UpdatePostDto): Promise<void> {
-    const { id, ...rest } = updatePostDto;
+    const { id, author, ...rest } = updatePostDto;
     const update = {
       ...rest,
       updatedAt: new Date().toISOString(),
     }
-    await this.postModel.updateOne({ _id: new Types.ObjectId(id) }, update).exec();
+
+    const result = await this.postModel.updateOne({ _id: new Types.ObjectId(id), author }, update).exec();
+    if (result.modifiedCount === 0) {
+      throw new NotFoundException(`Post with id ${id} not found`);
+    }
+
+    return;
   }
 
-  async deletePost(id: string): Promise<void> {
-    await this.postModel.deleteOne({ _id: new Types.ObjectId(id) }).exec();
+  async deletePost(deletePostDto: DeletePostDto): Promise<void> {
+    const result = await this.postModel.deleteOne({ _id: new Types.ObjectId(deletePostDto.id), author: deletePostDto.author }).exec();
+    
+    if (result.deletedCount === 0) {
+      throw new NotFoundException(`Post with id ${deletePostDto.id} not found`);
+    }
+
+    return;
   }  
 }
