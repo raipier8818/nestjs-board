@@ -13,7 +13,7 @@ export class AuthSerializer extends PassportSerializer {
     user: User,
     done: (err: any, user?: any) => void,
   ): Promise<any> {
-    console.log(user, 'serializeUser');
+    // console.log(user, 'serializeUser');
     done(null, user);
   }
 
@@ -21,7 +21,7 @@ export class AuthSerializer extends PassportSerializer {
     payload: any,
     done: (err: any, user?: any) => void,
   ): Promise<any> {
-    console.log(payload, 'deserializeUser');
+    // console.log(payload, 'deserializeUser');
     const user = await this.authService.validateAndSaveUser(payload);
     done(null, user);
   }

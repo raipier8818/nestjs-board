@@ -8,6 +8,7 @@ import {
   Put,
   Query,
   Req,
+  Session,
   UseGuards,
 } from '@nestjs/common';
 import { PostService } from './post.service';
@@ -32,7 +33,10 @@ export class PostController {
   async findPosts(
     @Query() postQueryDto: PostQueryDto,
     @Req() req: Request,
+    @Session() session: Record<string, any>,
   ): Promise<PostResponseDto[]> {
+    console.log('session', session);
+
     return this.postService.findPosts(postQueryDto);
   }
 
@@ -47,8 +51,6 @@ export class PostController {
     @Body() createPostRequestDto: CreatePostRequestDto,
     @Req() req: Request,
   ): Promise<PostResponseDto> {
-    console.log(req.user);
-
     const user = req.session['user'] as User;
     const createPostDto: CreatePostDto = {
       ...createPostRequestDto,

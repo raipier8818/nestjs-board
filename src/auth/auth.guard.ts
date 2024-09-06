@@ -34,12 +34,7 @@ export class LocalAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       const request = context.switchToHttp().getRequest();
-      const sessionUser: User = request.session.user as User;
-
-      if (sessionUser.name === 'no-auth') {
-        return true;
-      }
-
+      const sessionUser: User = request.session.passport.user as User;
       const user = await this.userService.findUserByEmail(sessionUser.email);
 
       if (!user) {
@@ -47,6 +42,7 @@ export class LocalAuthGuard implements CanActivate {
       }
       return true;
     } catch (error) {
+      console.log(error);
       return false;
     }
   }
