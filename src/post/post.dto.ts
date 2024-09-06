@@ -1,7 +1,7 @@
 import { IsEmpty, IsNotEmpty, IsNotIn, IsOptional, IsString } from "class-validator";
 import { PostDocument } from "./post.schema";
 
-export class CreatePostDto {
+export class CreatePostRequestDto {
   @IsString()
   @IsNotEmpty()
   title: string;
@@ -9,10 +9,10 @@ export class CreatePostDto {
   @IsString()
   @IsNotEmpty()
   content: string;
+}
 
-  @IsOptional()
-  @IsEmpty()
-  author?: string;
+export class CreatePostDto extends CreatePostRequestDto {
+  author: string;
 }
 
 export class UpdatePostRequestDto {

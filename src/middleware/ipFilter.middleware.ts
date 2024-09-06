@@ -14,7 +14,7 @@ export class IpFilterMiddleware implements NestMiddleware {
 
     if (whitelist.includes(req.headers.origin)) {
       req.session['user'] = {
-        name: 'fastapi'
+        name: 'no-auth'
       };
 
       return req.session.save(() => {

@@ -1,6 +1,24 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { PostService } from './post.service';
-import { CreatePostDto, PostQueryDto, PostResponseDto, UpdatePostDto, UpdatePostRequestDto } from './post.dto';
+import {
+  CreatePostDto,
+  CreatePostRequestDto,
+  PostQueryDto,
+  PostResponseDto,
+  UpdatePostDto,
+  UpdatePostRequestDto,
+} from './post.dto';
 import { LocalAuthGuard } from '../auth/auth.guard';
 import { Request } from 'express';
 import { User } from 'src/user/user.schema';
@@ -24,11 +42,14 @@ export class PostController {
   @Post()
   @UseGuards(LocalAuthGuard)
   async createPost(
-    @Body() createPostDto: CreatePostDto,
+    @Body() createPostRequestDto: CreatePostRequestDto,
     @Req() req: Request,
   ): Promise<PostResponseDto> {
     const user = req.session['user'] as User;
-    createPostDto.author = user.name;
+    const createPostDto: CreatePostDto = {
+      ...createPostRequestDto,
+      author: user.name,
+    };
     return await this.postService.createPost(createPostDto);
   }
 
@@ -49,7 +70,10 @@ export class PostController {
 
   @Delete('/:id')
   @UseGuards(LocalAuthGuard)
-  async deletePost(@Param('id') id: string, @Req() req: Request): Promise<void> {
+  async deletePost(
+    @Param('id') id: string,
+    @Req() req: Request,
+  ): Promise<void> {
     const author = req.session['user'].name;
     await this.postService.deletePost({ id, author });
   }

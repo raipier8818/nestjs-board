@@ -3,13 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { CreatePostDto, PostResponseDto } from '../src/post/post.dto';
-import { GoogleAuthGuard, LocalAuthGuard } from '../src/auth/auth.guard';
-import session from 'express-session';
+import { LocalAuthGuard } from '../src/auth/auth.guard';
 import { ConfigType } from '@nestjs/config';
 import appConfig from '../src/config/app.config';
-import { getConnectionToken, MongooseModule } from '@nestjs/mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { Connection } from 'mongoose';
+import * as session from 'express-session';
 
 const createRandomString = (length: number): string => {
   let result = '';
@@ -36,76 +33,45 @@ let app: INestApplication;
 describe.only.each([Array.from({ length: 1 }, createRandomPostDto)])(
   'PostController e2e with single data',
   (createPostDto: CreatePostDto) => {
-    let mongoServer: MongoMemoryServer;
-    let dbConnection: Connection;
+    
     let post: PostResponseDto;
 
     beforeAll(async () => {
-      // Create MongoMemoryServer instance
-      mongoServer = await MongoMemoryServer.create();
-      const uri = mongoServer.getUri();
-
       const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [
-          AppModule, // Import the main application module
-          MongooseModule.forRoot(uri), // Override MongoDB with in-memory instance
-        ],
-      }).compile();
+        imports: [AppModule],
+      })
+        .overrideGuard(LocalAuthGuard)
+        .useValue({
+          canActivate: (context: ExecutionContext) => {
+            const request = context.switchToHttp().getRequest();
+            request.session.user = {
+              name: createPostDto.author,
+            }
+
+            return true;
+          }
+        })
+        .compile();
 
       app = moduleFixture.createNestApplication();
+      const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
+      app.use(
+        session({
+          secret: config.session.secret,
+          resave: false,
+          saveUninitialized: false,
+          cookie: {
+            secure: false,
+            maxAge: config.session.maxAge,
+          },
+        }),
+      );
       await app.init();
-
-      // Get the Mongoose connection for cleanup later
-      dbConnection = app.get(getConnectionToken());
     });
 
     afterAll(async () => {
-      await dbConnection.dropDatabase(); // Drop the in-memory database
-      await dbConnection.close(); // Close the connection
-      await mongoServer.stop(); // Stop MongoMemoryServer
-      await app.close(); // Close the application
+      await app.close();
     });
-    // let post: PostResponseDto;
-
-    // beforeAll(async () => {
-    //   const moduleFixture: TestingModule = await Test.createTestingModule({
-    //     imports: [AppModule],
-    //   })
-    //     .overrideGuard(LocalAuthGuard)
-    //     .useValue({
-    //       canActivate: (context: ExecutionContext) => {
-    //         const request = context.switchToHttp().getRequest();
-    //         request.session.user = {
-    //           name: createPostDto.author,
-    //         }
-
-    //         return true;
-    //       }
-    //     })
-    //     .compile();
-
-    //   app = moduleFixture.createNestApplication();
-    //   const config = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
-    //   app.use(
-    //     session({
-    //       secret: config.session.secret,
-    //       resave: false,
-    //       saveUninitialized: false,
-    //       cookie: {
-    //         secure: false,
-    //         maxAge: config.session.maxAge,
-    //       },
-    //     }),
-    //   );
-
-
-    //   await app.init();
-
-    // });
-
-    // afterAll(async () => {
-    //   await app.close();
-    // });
 
     test('/post (GET) - find all posts', async () => {
       const response = await request(app.getHttpServer())
